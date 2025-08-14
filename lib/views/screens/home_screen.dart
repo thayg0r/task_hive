@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/task_viewmodel.dart';
 import '../../data/models/task_model.dart';
-import '../task_form_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +12,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _controller = TextEditingController();
+
+  String? _editingId;
+  final TextEditingController _editController = TextEditingController();
 
   void _showConfirmDialog({
     required BuildContext context,
@@ -42,36 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _addOrEditTask(BuildContext context, TaskModel? task) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TaskFormPage(
-          task: task,
-          onSave: (newTask) {
-            final taskVM = context.read<TaskViewModel>();
-
-            if (task == null) {
-              taskVM.addTask(newTask);
-            } else {
-              _showConfirmDialog(
-                context: context,
-                title: "Confirmar edição",
-                message:
-                    "Deseja salvar as alterações na tarefa \"${task.title}\"?",
-                onConfirm: () {
-                  taskVM.updateTask(task.id, newTask.toJson());
-                },
-              );
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    const inputHeight = 48.0;
     final taskVM = context.watch<TaskViewModel>();
 
     final tarefasCriadas = taskVM.tasks.length;
@@ -85,14 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // topo
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/icons/hive.png',
-                      height: 48,
-                    ),
+                    Image.asset('assets/icons/hive.png', height: 48),
                     const SizedBox(width: 4),
                     const Text.rich(
                       TextSpan(
@@ -120,50 +93,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      style: const TextStyle(
+                    child: SizedBox(
+                      height: inputHeight,
+                      child: TextField(
+                        controller: _controller,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF6B6572),
-                          fontWeight: FontWeight.normal),
-                      decoration: InputDecoration(
-                        hintText: 'Adicione uma nova tarefa',
-                        filled: true,
-                        fillColor: const Color(0xFFF0F0F0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Adicione uma nova tarefa',
+                          hintStyle: const TextStyle(fontSize: 16),
+                          filled: true,
+                          fillColor: const Color(0xFFF0F0F0),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_controller.text.trim().isNotEmpty) {
-                        taskVM.addTask(TaskModel(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          title: _controller.text.trim(),
-                          isCompleted: false,
-                        ));
-                        _controller.clear();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC40C),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  SizedBox(
+                    height: inputHeight,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final text = _controller.text.trim();
+                        if (text.isNotEmpty) {
+                          await taskVM.addTask(TaskModel(
+                            id: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                            title: text,
+                            isCompleted: false,
+                          ));
+                          _controller.clear();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFC40C),
+                        fixedSize: const Size(48, inputHeight),
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      padding: const EdgeInsets.all(14),
+                      child: const Icon(Icons.add, color: Colors.white),
                     ),
-                    child: const Icon(Icons.add, color: Colors.white),
-                  )
+                  ),
                 ],
               ),
+
               const SizedBox(height: 20),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -172,12 +163,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildCounter('Concluídas', tarefasConcluidas, Colors.green),
                 ],
               ),
+
               const SizedBox(height: 20),
+
               Expanded(
                 child: ListView.builder(
                   itemCount: taskVM.tasks.length,
                   itemBuilder: (context, index) {
                     final task = taskVM.tasks[index];
+                    final isEditing = _editingId == task.id;
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(
@@ -195,46 +190,95 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             child: Icon(
                               task.isCompleted
-                                  ? Icons.check_circle
+                                  ? Icons.circle
                                   : Icons.circle_outlined,
-                              color: task.isCompleted
-                                  ? Colors.green
-                                  : const Color(0xFFFFC40C),
+                              color: const Color(0xFFFFC40C),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              task.title,
-                              style: TextStyle(
-                                decoration: task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: task.isCompleted
-                                    ? Colors.grey
-                                    : Colors.black,
-                              ),
+                            child: isEditing
+                                ? TextField(
+                                    controller: _editController,
+                                    autofocus: true,
+                                    style: const TextStyle(fontSize: 16),
+                                    decoration: const InputDecoration(
+                                      isDense: true,
+                                      border: OutlineInputBorder(
+                                          borderSide: BorderSide.none),
+                                      contentPadding:
+                                          EdgeInsets.symmetric(vertical: 6),
+                                    ),
+                                  )
+                                : Text(
+                                    task.title,
+                                    style: TextStyle(
+                                      decoration: task.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                      color: task.isCompleted
+                                          ? Colors.grey
+                                          : Colors.black,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          ),
+                          if (isEditing) ...[
+                            IconButton(
+                              tooltip: 'Salvar edição',
+                              icon:
+                                  const Icon(Icons.check, color: Colors.green),
+                              onPressed: () {
+                                final newTitle = _editController.text.trim();
+                                if (newTitle.isEmpty ||
+                                    newTitle == task.title) {
+                                  setState(() => _editingId = null);
+                                  return;
+                                }
+                                _showConfirmDialog(
+                                  context: context,
+                                  title: 'Confirmar edição',
+                                  message: 'Deseja salvar as alterações?',
+                                  onConfirm: () async {
+                                    await taskVM.updateTask(
+                                        task.id, {'title': newTitle});
+                                    setState(() => _editingId = null);
+                                  },
+                                );
+                              },
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.grey),
-                            onPressed: () => _addOrEditTask(context, task),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline,
-                                color: Colors.grey),
-                            onPressed: () {
-                              _showConfirmDialog(
-                                context: context,
-                                title: "Confirmar exclusão",
-                                message:
-                                    "Tem certeza que deseja excluir \"${task.title}\"?",
-                                onConfirm: () {
-                                  taskVM.deleteTask(task.id);
-                                },
-                              );
-                            },
-                          )
+                            IconButton(
+                              tooltip: 'Cancelar',
+                              icon: const Icon(Icons.close, color: Colors.grey),
+                              onPressed: () =>
+                                  setState(() => _editingId = null),
+                            ),
+                          ] else ...[
+                            IconButton(
+                              tooltip: 'Editar',
+                              icon: const Icon(Icons.edit, color: Colors.grey),
+                              onPressed: () {
+                                setState(() {
+                                  _editingId = task.id;
+                                  _editController.text = task.title;
+                                });
+                              },
+                            ),
+                            IconButton(
+                              tooltip: 'Excluir',
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.grey),
+                              onPressed: () {
+                                _showConfirmDialog(
+                                  context: context,
+                                  title: "Confirmar exclusão",
+                                  message:
+                                      'Tem certeza que deseja excluir a tarefa?',
+                                  onConfirm: () => taskVM.deleteTask(task.id),
+                                );
+                              },
+                            ),
+                          ],
                         ],
                       ),
                     );
@@ -251,10 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCounter(String label, int count, Color color) {
     return Row(
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(width: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -264,10 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Text(
             count.toString(),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
           ),
         ),
       ],

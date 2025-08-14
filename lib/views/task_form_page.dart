@@ -13,42 +13,12 @@ class TaskFormPage extends StatefulWidget {
 
 class _TaskFormPageState extends State<TaskFormPage> {
   final _formKey = GlobalKey<FormState>();
-  late String title;
-  late String description;
+  late final TextEditingController _titleController;
 
   @override
   void initState() {
     super.initState();
-    title = widget.task?.title ?? '';
-  }
-
-  void _confirmSave(TaskModel task) {
-    if (widget.task != null) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Confirmar edição"),
-          content: const Text("Deseja salvar as alterações desta tarefa?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancelar"),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              child: const Text("Confirmar"),
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onSave(task); 
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      );
-    } else {
-      widget.onSave(task);
-      Navigator.pop(context);
-    }
+    _titleController = TextEditingController(text: widget.task?.title ?? '');
   }
 
   @override
@@ -64,28 +34,12 @@ class _TaskFormPageState extends State<TaskFormPage> {
           child: Column(
             children: [
               TextFormField(
-                initialValue: title,
+                controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Título'),
                 validator: (value) =>
-                    value!.isEmpty ? 'Informe um título' : null,
-                onSaved: (value) => title = value!,
+                    value!.trim().isEmpty ? 'Informe um título' : null,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    final task = TaskModel(
-                      id: widget.task?.id ??
-                          DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: title,
-                      isCompleted: widget.task?.isCompleted ?? false,
-                    );
-                    _confirmSave(task);
-                  }
-                },
-                child: const Text('Salvar'),
-              ),
             ],
           ),
         ),
