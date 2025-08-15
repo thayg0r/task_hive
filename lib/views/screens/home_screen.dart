@@ -186,11 +186,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           GestureDetector(
                             onTap: () {
                               taskVM.updateTask(
-                                  task.id, {'is_completed': !task.isCompleted});
+                                task.id,
+                                {'is_completed': !task.isCompleted},
+                              );
                             },
                             child: Icon(
                               task.isCompleted
-                                  ? Icons.circle
+                                  ? Icons.check_circle
                                   : Icons.circle_outlined,
                               color: const Color(0xFFFFC40C),
                             ),
@@ -216,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       decoration: task.isCompleted
                                           ? TextDecoration.lineThrough
                                           : null,
+                                      decorationColor: Colors.grey,
                                       color: task.isCompleted
                                           ? Colors.grey
                                           : Colors.black,
@@ -257,6 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             IconButton(
                               tooltip: 'Editar',
                               icon: const Icon(Icons.edit, color: Colors.grey),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
                               onPressed: () {
                                 setState(() {
                                   _editingId = task.id;
@@ -268,6 +273,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               tooltip: 'Excluir',
                               icon: const Icon(Icons.delete_outline,
                                   color: Colors.grey),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
                               onPressed: () {
                                 _showConfirmDialog(
                                   context: context,
