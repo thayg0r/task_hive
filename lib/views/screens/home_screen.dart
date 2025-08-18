@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:task_hive/views/screens/widgets/clock_icon.dart';
 import '../../viewmodels/task_viewmodel.dart';
 import '../../data/models/task_model.dart';
 
@@ -12,14 +13,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _controller = TextEditingController();
-
   String? _editingId;
   final TextEditingController _editController = TextEditingController();
+  TimeOfDay _parseTime(String timeStr) {
+    try {
+      final parts = timeStr.split(" ");
+      final hm = parts[0].split(":");
+      int hour = int.parse(hm[0]);
+      int minute = int.parse(hm[1]);
+
+      if (parts.length > 1) {
+        final period = parts[1].toUpperCase();
+        if (period == "PM" && hour != 12) hour += 12;
+        if (period == "AM" && hour == 12) hour = 0;
+      }
+
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (e) {
+      return TimeOfDay.now();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    const inputHeight = 48.0;
     final taskVM = context.watch<TaskViewModel>();
 
     final tarefasCriadas = taskVM.tasks.length;
@@ -68,77 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: inputHeight,
-                          child: TextField(
-                            controller: _controller,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color.fromARGB(230, 175, 175, 175),
-                            ),
-                            cursorColor: Colors.white,
-                            decoration: InputDecoration(
-                              hintText: 'Adicione uma nova tarefa',
-                              hintStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Color.fromARGB(255, 126, 126, 126),
-                                fontWeight: FontWeight.w500,
-                              ),
-                              filled: true,
-                              fillColor:
-                                  const Color.fromARGB(110, 236, 236, 236),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 14),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                    color: Color.fromARGB(129, 158, 158, 158),
-                                    width: 1),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        height: inputHeight,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final text = _controller.text.trim();
-                            if (text.isNotEmpty) {
-                              await taskVM.addTask(TaskModel(
-                                id: DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString(),
-                                title: text,
-                                isCompleted: false,
-                              ));
-                              _controller.clear();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFC40C),
-                            fixedSize: const Size(48, inputHeight),
-                            padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Icon(Icons.add, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildCounter('Tarefas criadas', tarefasCriadas,
@@ -181,157 +126,161 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           )
-                        : ReorderableListView.builder(
+                        : ListView.builder(
                             itemCount: taskVM.tasks.length,
-                            onReorder: (oldIndex, newIndex) {
-                              setState(() {
-                                if (newIndex > oldIndex) newIndex -= 1;
-                                final movedTask =
-                                    taskVM.tasks.removeAt(oldIndex);
-                                taskVM.tasks.insert(newIndex, movedTask);
-                              });
-                            },
-                            buildDefaultDragHandles: false,
                             itemBuilder: (context, index) {
                               final sortedTasks = [...taskVM.tasks]
                                 ..sort((a, b) {
                                   if (a.isCompleted == b.isCompleted) return 0;
                                   return a.isCompleted ? 1 : -1;
                                 });
-
                               final task = sortedTasks[index];
                               final isEditing = _editingId == task.id;
 
-                              return ReorderableDragStartListener(
+                              return Slidable(
                                 key: ValueKey(task.id),
-                                index: index,
-                                enabled: true,
-                                child: Slidable(
-                                  startActionPane: ActionPane(
-                                    motion: const DrawerMotion(),
-                                    extentRatio: 0.25,
-                                    children: [
-                                      SlidableAction(
-                                        onPressed: (_) {
-                                          setState(() {
-                                            _editingId = task.id;
-                                            _editController.text = task.title;
-                                          });
-                                        },
-                                        backgroundColor:
-                                            const Color(0xFF2196F3),
-                                        foregroundColor: Colors.white,
-                                        icon: Icons.edit,
+                                startActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.15,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) {
+                                        _openTaskForm(context, taskVM,
+                                            task: task);
+                                      },
+                                      backgroundColor: const Color(0xFF2196F3),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.edit,
+                                      padding: const EdgeInsets.all(4),
+                                    ),
+                                  ],
+                                ),
+                                endActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.15,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) {
+                                        final deletedTask = task;
+                                        taskVM.deleteTask(task.id);
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                                'Tarefa excluída com sucesso!'),
+                                            action: SnackBarAction(
+                                              label: 'Desfazer',
+                                              textColor: Colors.yellow[700],
+                                              onPressed: () {
+                                                taskVM.addTask(deletedTask);
+                                              },
+                                            ),
+                                            duration:
+                                                const Duration(seconds: 3),
+                                          ),
+                                        );
+                                      },
+                                      backgroundColor: const Color(0xFFE53935),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete_outline,
+                                      padding: const EdgeInsets.all(4),
+                                    ),
+                                  ],
+                                ),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 2,
+                                        offset: const Offset(0, 3),
                                       ),
                                     ],
                                   ),
-                                  endActionPane: ActionPane(
-                                    motion: const DrawerMotion(),
-                                    extentRatio: 0.25,
+                                  child: Row(
                                     children: [
-                                      SlidableAction(
-                                        onPressed: (_) {
-                                          final deletedTask = task;
-                                          taskVM.deleteTask(task.id);
-
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: const Text(
-                                                  'Tarefa excluída com sucesso!'),
-                                              action: SnackBarAction(
-                                                label: 'Desfazer',
-                                                textColor: Colors.yellow[700],
-                                                onPressed: () {
-                                                  taskVM.addTask(deletedTask);
-                                                },
-                                              ),
-                                              duration:
-                                                  const Duration(seconds: 3),
-                                            ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          taskVM.updateTask(
+                                            task.id,
+                                            {'is_completed': !task.isCompleted},
                                           );
                                         },
-                                        backgroundColor:
-                                            const Color(0xFFE53935),
-                                        foregroundColor: Colors.white,
-                                        icon: Icons.delete_outline,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(bottom: 16),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F5F5),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 2,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            taskVM.updateTask(
-                                              task.id,
-                                              {
-                                                'is_completed':
-                                                    !task.isCompleted
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            task.isCompleted
-                                                ? Icons.check_circle
-                                                : Icons.circle_outlined,
-                                            color: const Color(0xFFFFC40C),
+                                        child: Container(
+                                          width: 18,
+                                          height: 18,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: task.isCompleted
+                                                    ? Colors.green
+                                                    : Colors.grey,
+                                                width: 2),
+                                            color: task.isCompleted
+                                                ? Colors.green
+                                                : Colors.transparent,
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: isEditing
-                                              ? TextField(
-                                                  controller: _editController,
-                                                  autofocus: true,
-                                                  style: const TextStyle(
-                                                      fontSize: 16),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    isDense: true,
-                                                    border: OutlineInputBorder(
-                                                        borderSide:
-                                                            BorderSide.none),
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            vertical: 6),
-                                                  ),
+                                          child: task.isCompleted
+                                              ? const Icon(
+                                                  Icons.check,
+                                                  size: 14,
+                                                  color: Colors.white,
                                                 )
-                                              : AnimatedSwitcher(
-                                                  duration: const Duration(
-                                                      milliseconds: 300),
-                                                  transitionBuilder:
-                                                      (child, animation) =>
-                                                          FadeTransition(
-                                                    opacity: animation,
-                                                    child: child,
-                                                  ),
+                                              : null,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: isEditing
+                                            ? TextField(
+                                                controller: _editController,
+                                                autofocus: true,
+                                                style: const TextStyle(
+                                                    fontSize: 16),
+                                                decoration:
+                                                    const InputDecoration(
+                                                  isDense: true,
+                                                  border: OutlineInputBorder(
+                                                      borderSide:
+                                                          BorderSide.none),
+                                                  contentPadding:
+                                                      EdgeInsets.symmetric(
+                                                          vertical: 6),
+                                                ),
+                                              )
+                                            : AnimatedSwitcher(
+                                                duration: const Duration(
+                                                    milliseconds: 300),
+                                                transitionBuilder:
+                                                    (child, animation) =>
+                                                        FadeTransition(
+                                                            opacity: animation,
+                                                            child: child),
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
                                                   child: Text(
                                                     task.title,
                                                     key: ValueKey(
                                                         task.isCompleted),
+                                                    textAlign: TextAlign.left,
                                                     style: TextStyle(
                                                       decoration:
                                                           task.isCompleted
                                                               ? TextDecoration
                                                                   .lineThrough
                                                               : null,
+                                                      decorationColor:
+                                                          Colors.grey,
                                                       color: task.isCompleted
                                                           ? Colors.grey
                                                           : Colors.black,
@@ -339,131 +288,42 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     ),
                                                   ),
                                                 ),
+                                              ),
+                                      ),
+                                      if (task.notifyTime != null &&
+                                          task.notifyTime!.isNotEmpty) ...[
+                                        Tooltip(
+                                          message:
+                                              "Notificação às ${task.notifyTime!}",
+                                          child: ClockIcon(
+                                            time: _parseTime(task.notifyTime!),
+                                            size: 18,
+                                          ),
                                         ),
-                                        if (isEditing) ...[
-                                          IconButton(
-                                            iconSize: 20,
-                                            tooltip: 'Salvar edição',
-                                            icon: const Icon(Icons.check,
-                                                color: Colors.green),
-                                            onPressed: () {
-                                              final newTitle =
-                                                  _editController.text.trim();
-                                              if (newTitle.isEmpty ||
-                                                  newTitle == task.title) {
-                                                setState(
-                                                    () => _editingId = null);
-                                                return;
-                                              }
-                                              final oldTitle = task.title;
-
-                                              setState(() {
-                                                taskVM.updateTask(task.id,
-                                                    {'title': newTitle});
-                                                _editingId = null;
-                                              });
-
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: const Text(
-                                                      'Tarefa atualizada com sucesso!'),
-                                                  action: SnackBarAction(
-                                                    label: 'Desfazer',
-                                                    textColor:
-                                                        Colors.yellow[700],
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        taskVM.updateTask(
-                                                            task.id, {
-                                                          'title': oldTitle
-                                                        });
-                                                      });
-                                                    },
-                                                  ),
-                                                  duration: const Duration(
-                                                      seconds: 5),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          IconButton(
-                                            iconSize: 20,
-                                            tooltip: 'Cancelar',
-                                            icon: const Icon(Icons.close,
-                                                color: Colors.red),
-                                            onPressed: () => setState(
-                                                () => _editingId = null),
-                                          ),
-                                        ] else ...[
-                                          IconButton(
-                                            tooltip: 'Editar',
-                                            iconSize: 20,
-                                            icon: const Icon(Icons.edit,
-                                                color: Colors.grey),
-                                            padding: EdgeInsets.zero,
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                            onPressed: () {
-                                              setState(() {
-                                                _editingId = task.id;
-                                                _editController.text =
-                                                    task.title;
-                                              });
-                                            },
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Excluir',
-                                            iconSize: 20,
-                                            icon: const Icon(
-                                                Icons.delete_outline,
-                                                color: Colors.grey),
-                                            padding: EdgeInsets.zero,
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                            onPressed: () {
-                                              final removedTask = task;
-                                              final removedIndex = index;
-
-                                              setState(() {
-                                                taskVM.tasks.removeAt(index);
-                                              });
-
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: const Text(
-                                                      'Tarefa excluída com sucesso!'),
-                                                  action: SnackBarAction(
-                                                    label: 'Desfazer',
-                                                    textColor:
-                                                        Colors.yellow[700],
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        taskVM.tasks.insert(
-                                                            removedIndex,
-                                                            removedTask);
-                                                      });
-                                                    },
-                                                  ),
-                                                  duration: const Duration(
-                                                      seconds: 5),
-                                                ),
-                                              );
-
-                                              Future.delayed(
-                                                  const Duration(seconds: 5),
-                                                  () {
-                                                if (!taskVM.tasks
-                                                    .contains(removedTask)) {
-                                                  taskVM.deleteTask(task.id);
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                        const SizedBox(width: 16),
                                       ],
-                                    ),
+                                      Tooltip(
+                                        message: task.priority == "I"
+                                            ? "Prioridade I (Alta)"
+                                            : task.priority == "II"
+                                                ? "Prioridade II (Média)"
+                                                : "Prioridade III (Baixa)",
+                                        child: Container(
+                                          width: 18,
+                                          height: 18,
+                                          margin:
+                                              const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: task.priority == "I"
+                                                ? Colors.red
+                                                : task.priority == "II"
+                                                    ? const Color(0xFFFFC40C)
+                                                    : Colors.blue,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
@@ -476,6 +336,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: FloatingActionButton(
+          onPressed: () => _openTaskForm(context, taskVM),
+          backgroundColor: const Color(0xFFFFC40C),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(33),
+          ),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+      ),
     );
   }
 
@@ -485,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(width: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
@@ -496,6 +367,205 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _openTaskForm(BuildContext context, TaskViewModel taskVM,
+      {TaskModel? task}) {
+    final TextEditingController titleController =
+        TextEditingController(text: task?.title ?? "");
+    String priority = task?.priority ?? "III";
+    TimeOfDay? selectedTime;
+
+    if (task?.notifyTime != null) {
+      final parts = task!.notifyTime!.split(":");
+      if (parts.length == 2) {
+        final hour = int.tryParse(parts[0]);
+        final minute = int.tryParse(parts[1]);
+        if (hour != null && minute != null) {
+          selectedTime = TimeOfDay(hour: hour, minute: minute);
+        }
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 20,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              bool isFormValid =
+                  titleController.text.trim().isNotEmpty && priority.isNotEmpty;
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(task == null ? Icons.add_task : Icons.edit,
+                          color: const Color(0xFFFFC40C)),
+                      const SizedBox(width: 8),
+                      Text(
+                        task == null ? "Nova Tarefa" : "Editar Tarefa",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+                  TextField(
+                    controller: titleController,
+                    onChanged: (_) => setModalState(() {}),
+                    decoration: InputDecoration(
+                      label: RichText(
+                        text: const TextSpan(
+                          text: "Descrição da tarefa ",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                          children: [
+                            TextSpan(
+                              text: "*",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: priority,
+                    items: const [
+                      DropdownMenuItem(
+                          value: "I", child: Text("Prioridade I (Alta)")),
+                      DropdownMenuItem(
+                          value: "II", child: Text("Prioridade II (Média)")),
+                      DropdownMenuItem(
+                          value: "III", child: Text("Prioridade III (Baixa)")),
+                    ],
+                    onChanged: (value) {
+                      priority = value!;
+                      setModalState(() {});
+                    },
+                    decoration: InputDecoration(
+                      label: RichText(
+                        text: const TextSpan(
+                          text: "Prioridade ",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                          children: [
+                            TextSpan(
+                              text: "*",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          selectedTime == null
+                              ? "Nenhum horário selecionado"
+                              : "Notificação: ${selectedTime!.format(context)}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime ?? TimeOfDay.now(),
+                          );
+                          if (picked != null) {
+                            setState(() => selectedTime = picked);
+                            setModalState(() {});
+                          }
+                        },
+                        icon: const Icon(Icons.access_time,
+                            color: Color(0xFFFFC40C)),
+                        label: const Text("Escolher horário"),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isFormValid
+                          ? const Color(0xFFFFC40C)
+                          : Colors.grey.shade400,
+                      foregroundColor: Colors.black,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: isFormValid
+                        ? () async {
+                            if (task == null) {
+                              await taskVM.addTask(TaskModel(
+                                id: DateTime.now()
+                                    .millisecondsSinceEpoch
+                                    .toString(),
+                                title: titleController.text.trim(),
+                                isCompleted: false,
+                                priority: priority,
+                                notifyTime: selectedTime?.format(context),
+                              ));
+                            } else {
+                              taskVM.updateTask(task.id, {
+                                'title': titleController.text.trim(),
+                                'priority': priority,
+                                'notify_time': selectedTime?.format(context),
+                              });
+                            }
+
+                            Navigator.pop(context);
+                          }
+                        : null,
+                    child: Text(
+                      task == null ? "Salvar" : "Atualizar",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
