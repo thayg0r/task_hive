@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:task_hive/views/screens/widgets/clock_icon.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/task_viewmodel.dart';
 import '../../data/models/task_model.dart';
 
@@ -15,6 +16,33 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? _editingId;
   final TextEditingController _editController = TextEditingController();
+
+  DateTime _currentDate = _onlyDate(DateTime.now());
+
+  static DateTime _onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _formatShort(DateTime d) {
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    return '$dd/$mm';
+  }
+
+  String _labelFor(DateTime d) {
+    final today = _onlyDate(DateTime.now());
+    final tomorrow = _onlyDate(today.add(const Duration(days: 1)));
+    if (_isSameDay(d, today)) return 'Hoje • ${_formatShort(d)}';
+    if (_isSameDay(d, tomorrow)) return 'Amanhã • ${_formatShort(d)}';
+    return '${_weekdayPt(d.weekday)} • ${_formatShort(d)}';
+  }
+
+  String _weekdayPt(int weekday) {
+    const names = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    return names[(weekday - 1) % 7];
+  }
+
   TimeOfDay _parseTime(String timeStr) {
     try {
       final parts = timeStr.split(" ");
@@ -38,8 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final taskVM = context.watch<TaskViewModel>();
 
-    final tarefasCriadas = taskVM.tasks.length;
-    final tarefasConcluidas = taskVM.tasks.where((t) => t.isCompleted).length;
+    final tasksOfDay = taskVM.tasks.where((t) {
+      final d = t.taskDate;
+      if (d == null) return false;
+      return _isSameDay(_onlyDate(d), _currentDate);
+    }).toList();
+
+    final tarefasCriadas = tasksOfDay.length;
+    final tarefasConcluidas = tasksOfDay.where((t) => t.isCompleted).length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -83,6 +117,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  Center(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.event),
+                      label: Text(_labelFor(_currentDate)),
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _currentDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) {
+                          setState(() => _currentDate = _onlyDate(picked));
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        shape: const StadiumBorder(),
+                        side: BorderSide(color: Colors.grey.shade300),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        foregroundColor: const Color(0xFF191919),
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -94,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: taskVM.tasks.isEmpty
+                    child: tasksOfDay.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -127,10 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           )
                         : ListView.builder(
-                            itemCount: taskVM.tasks.length,
+                            itemCount: tasksOfDay.length,
                             itemBuilder: (context, index) {
-                              final sortedTasks = [...taskVM.tasks]
-                                ..sort((a, b) {
+                              final sortedTasks = [...tasksOfDay]..sort((a, b) {
                                   if (a.isCompleted == b.isCompleted) return 0;
                                   return a.isCompleted ? 1 : -1;
                                 });
@@ -304,10 +363,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                       Tooltip(
                                         message: task.priority == "I"
-                                            ? "Prioridade I (Alta)"
+                                            ? "Prioridade Alta"
                                             : task.priority == "II"
-                                                ? "Prioridade II (Média)"
-                                                : "Prioridade III (Baixa)",
+                                                ? "Prioridade Média"
+                                                : "Prioridade Baixa",
                                         child: Container(
                                           width: 18,
                                           height: 18,
@@ -376,6 +435,9 @@ class _HomeScreenState extends State<HomeScreen> {
         TextEditingController(text: task?.title ?? "");
     String priority = task?.priority ?? "III";
     TimeOfDay? selectedTime;
+
+    DateTime? selectedDate =
+        task?.taskDate != null ? _onlyDate(task!.taskDate!) : _currentDate;
 
     if (task?.notifyTime != null) {
       final parts = task!.notifyTime!.split(":");
@@ -453,13 +515,58 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: priority,
-                    items: const [
+                    items: [
                       DropdownMenuItem(
-                          value: "I", child: Text("Prioridade I (Alta)")),
+                        value: "I",
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const Text(" Alta"),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
                       DropdownMenuItem(
-                          value: "II", child: Text("Prioridade II (Média)")),
+                        value: "II",
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFC40C),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const Text(" Média"),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
                       DropdownMenuItem(
-                          value: "III", child: Text("Prioridade III (Baixa)")),
+                        value: "III",
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const Text(" Baixa"),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
                     ],
                     onChanged: (value) {
                       priority = value!;
@@ -491,8 +598,41 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Expanded(
                         child: Text(
+                          selectedDate == null
+                              ? "Data da tarefa"
+                              : "Data: ${DateFormat('dd/MM/yyyy').format(selectedDate!)}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() => selectedDate = picked);
+                            setModalState(() {});
+                          }
+                        },
+                        icon: const Icon(Icons.event, color: Color(0xFFFFC40C)),
+                        label: const Text("Escolher data"),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
                           selectedTime == null
-                              ? "Nenhum horário selecionado"
+                              ? "Horário Notificação"
                               : "Notificação: ${selectedTime!.format(context)}",
                           style: const TextStyle(fontSize: 14),
                         ),
@@ -535,19 +675,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? () async {
                             if (task == null) {
                               await taskVM.addTask(TaskModel(
-                                id: DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString(),
+                                id: '',
                                 title: titleController.text.trim(),
                                 isCompleted: false,
                                 priority: priority,
                                 notifyTime: selectedTime?.format(context),
+                                taskDate: selectedDate,
                               ));
                             } else {
                               taskVM.updateTask(task.id, {
                                 'title': titleController.text.trim(),
                                 'priority': priority,
                                 'notify_time': selectedTime?.format(context),
+                                'task_date': selectedDate?.toIso8601String(),
                               });
                             }
 
