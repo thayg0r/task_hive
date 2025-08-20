@@ -43,14 +43,23 @@ class TaskItem extends StatelessWidget {
             onPressed: (_) {
               TaskFormSheet.open(context, taskVM, task.taskDate, task: task);
             },
-            backgroundColor: const Color(0xFF2196F3),
-            padding: const EdgeInsets.all(4),
-            child: SvgPicture.asset(
-              'assets/icons/pencil.svg',
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-              width: 24,
-              height: 24,
+            padding: EdgeInsets.zero,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2196F3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icons/pencil.svg',
+                  colorFilter:
+                      const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  width: 22,
+                  height: 22,
+                ),
+              ),
             ),
           ),
         ],
@@ -78,16 +87,25 @@ class TaskItem extends StatelessWidget {
                 ),
               );
             },
-            backgroundColor: const Color(0xFFE53935),
-            padding: const EdgeInsets.all(4),
-            child: SvgPicture.asset(
-              'assets/icons/trash.svg',
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-              width: 24,
-              height: 24,
+            padding: EdgeInsets.zero,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icons/trash.svg',
+                  colorFilter:
+                      const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  width: 22,
+                  height: 22,
+                ),
+              ),
             ),
-          )
+          ),
         ],
       ),
       child: Container(
