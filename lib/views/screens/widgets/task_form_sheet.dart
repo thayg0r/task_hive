@@ -202,7 +202,8 @@ class TaskFormSheet {
                                         seedColor: brandYellow),
                                     datePickerTheme: DatePickerThemeData(
                                       headerBackgroundColor: brandYellow,
-                                      headerForegroundColor: Color(0xFF191919),
+                                      headerForegroundColor:
+                                          const Color(0xFF191919),
                                       todayForegroundColor:
                                           const MaterialStatePropertyAll(
                                               Color(0xFF191919)),
