@@ -188,9 +188,43 @@ class TaskFormSheet {
                           onPressed: () async {
                             final picked = await showDatePicker(
                               context: context,
+                              locale: const Locale('pt', 'BR'),
                               initialDate: selectedDate ?? DateTime.now(),
                               firstDate: DateTime(2020),
                               lastDate: DateTime(2100),
+                              builder: (context, child) {
+                                const brandYellow = Color(0xFFFFC40C);
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.fromSeed(
+                                        seedColor: brandYellow),
+                                    datePickerTheme: DatePickerThemeData(
+                                      headerBackgroundColor: brandYellow,
+                                      headerForegroundColor: Colors.black,
+                                      todayForegroundColor:
+                                          const MaterialStatePropertyAll(
+                                              Colors.black),
+                                      todayBackgroundColor:
+                                          const MaterialStatePropertyAll(
+                                              brandYellow),
+                                      dayForegroundColor:
+                                          const MaterialStatePropertyAll(
+                                              Colors.black),
+                                      dayBackgroundColor: MaterialStateProperty
+                                          .resolveWith<Color?>(
+                                        (states) {
+                                          if (states.contains(
+                                              MaterialState.selected)) {
+                                            return brandYellow;
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
                             );
                             if (picked != null) {
                               selectedDate = picked;
@@ -201,7 +235,10 @@ class TaskFormSheet {
                             'assets/icons/calendar.svg',
                             width: 24,
                             height: 24,
-                            color: const Color(0xFFFFC40C),
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFFFFC40C),
+                              BlendMode.srcIn,
+                            ),
                           ),
                           label: const Text("Escolher data"),
                         ),
@@ -235,7 +272,10 @@ class TaskFormSheet {
                             'assets/icons/clock.svg',
                             width: 24,
                             height: 24,
-                            color: const Color(0xFFFFC40C),
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFFFFC40C),
+                              BlendMode.srcIn,
+                            ),
                           ),
                           label: const Text("Escolher horário"),
                         ),
