@@ -91,7 +91,8 @@ class TaskFormSheet {
                       label: RichText(
                         text: const TextSpan(
                           text: "Descrição da tarefa ",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
+                          style:
+                              TextStyle(color: Color(0xFF191919), fontSize: 16),
                           children: [
                             TextSpan(
                               text: "*",
@@ -154,7 +155,8 @@ class TaskFormSheet {
                       label: RichText(
                         text: const TextSpan(
                           text: "Prioridade ",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
+                          style:
+                              TextStyle(color: Color(0xFF191919), fontSize: 16),
                           children: [
                             TextSpan(
                               text: "*",
@@ -200,16 +202,16 @@ class TaskFormSheet {
                                         seedColor: brandYellow),
                                     datePickerTheme: DatePickerThemeData(
                                       headerBackgroundColor: brandYellow,
-                                      headerForegroundColor: Colors.black,
+                                      headerForegroundColor: Color(0xFF191919),
                                       todayForegroundColor:
                                           const MaterialStatePropertyAll(
-                                              Colors.black),
+                                              Color(0xFF191919)),
                                       todayBackgroundColor:
                                           const MaterialStatePropertyAll(
                                               brandYellow),
                                       dayForegroundColor:
                                           const MaterialStatePropertyAll(
-                                              Colors.black),
+                                              Color(0xFF191919)),
                                       dayBackgroundColor: MaterialStateProperty
                                           .resolveWith<Color?>(
                                         (states) {
@@ -240,7 +242,10 @@ class TaskFormSheet {
                               BlendMode.srcIn,
                             ),
                           ),
-                          label: const Text("Escolher data"),
+                          label: const Text(
+                            "Escolher data",
+                            style: TextStyle(color: Color(0xFF191919)),
+                          ),
                         ),
                       ),
                     ],
@@ -277,7 +282,10 @@ class TaskFormSheet {
                               BlendMode.srcIn,
                             ),
                           ),
-                          label: const Text("Escolher horário"),
+                          label: const Text(
+                            "Escolher horário",
+                            style: TextStyle(color: Color(0xFF191919)),
+                          ),
                         ),
                       ),
                     ],

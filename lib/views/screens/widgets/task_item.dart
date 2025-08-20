@@ -98,7 +98,7 @@ class TaskItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: const Color(0xFF191919).withOpacity(0.05),
               blurRadius: 2,
               offset: const Offset(0, 3),
             ),
@@ -136,7 +136,8 @@ class TaskItem extends StatelessWidget {
                   decoration:
                       task.isCompleted ? TextDecoration.lineThrough : null,
                   decorationColor: Colors.grey,
-                  color: task.isCompleted ? Colors.grey : Colors.black,
+                  color:
+                      task.isCompleted ? Colors.grey : const Color(0xFF191919),
                   fontSize: 16,
                 ),
               ),

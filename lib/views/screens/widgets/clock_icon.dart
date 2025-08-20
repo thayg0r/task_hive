@@ -31,12 +31,12 @@ class _ClockPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     final paintHour = Paint()
-      ..color = Colors.black
+      ..color = const Color(0XFF191919)
       ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
 
     final paintMinute = Paint()
-      ..color = Colors.black
+      ..color = const Color(0XFF191919)
       ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
 

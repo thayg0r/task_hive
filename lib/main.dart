@@ -42,13 +42,13 @@ class TaskHiveApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-
         theme: ThemeData(
+          fontFamily: 'HankenGrotesk',
           colorScheme: ColorScheme.fromSeed(seedColor: brandYellow),
           useMaterial3: true,
           datePickerTheme: const DatePickerThemeData(
             headerBackgroundColor: brandYellow,
-            headerForegroundColor: Colors.black,
+            headerForegroundColor: Color(0xFF191919),
             surfaceTintColor: Colors.white,
           ),
         ),
