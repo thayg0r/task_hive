@@ -34,7 +34,7 @@ class TaskList extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Você ainda não tem tarefas cadastradas',
+              'Você ainda não tem tarefas cadastradas.',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -44,7 +44,7 @@ class TaskList extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Adicione suas tarefas no botão + abaixo',
+              'Adicione suas tarefas no botão + abaixo.',
               style: TextStyle(fontSize: 14, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
