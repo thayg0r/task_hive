@@ -17,11 +17,13 @@ dependencies:
   intl: ^0.19.0
   http: ^1.2.0
   flutter_slidable: ^3.1.0
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -29,3 +31,10 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/hive.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/hive.png"
