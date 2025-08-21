@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 
 import 'core/services/supabase_service.dart';
 import 'viewmodels/task_viewmodel.dart';
@@ -15,6 +16,28 @@ void main() async {
 
   await initializeDateFormatting('pt_BR');
   Intl.defaultLocale = 'pt_BR';
+
+  AwesomeNotifications().initialize(
+    null,
+    [
+      NotificationChannel(
+        channelKey: 'taskhive_channel',
+        channelName: 'Lembretes de Tarefas',
+        channelDescription: 'Notificações de lembrete de tarefas TaskHive',
+        defaultColor: const Color(0xFFFFC40C),
+        ledColor: Colors.white,
+        importance: NotificationImportance.High,
+        channelShowBadge: true,
+      )
+    ],
+    debug: true,
+  );
+
+  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+    if (!isAllowed) {
+      AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+  });
 
   runApp(const TaskHiveApp());
 }

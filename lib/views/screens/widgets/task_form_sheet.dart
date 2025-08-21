@@ -326,7 +326,9 @@ class TaskFormSheet {
                               taskVM.updateTask(task.id, {
                                 'title': titleController.text.trim(),
                                 'priority': priority,
-                                'notify_time': selectedTime?.format(context),
+                                'notify_time': selectedTime != null
+                                    ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                                    : null,
                                 'task_date': selectedDate?.toIso8601String(),
                               });
                             }

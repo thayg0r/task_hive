@@ -11,8 +11,11 @@ class TaskRepository {
     return response.map((json) => TaskModel.fromJson(json)).toList();
   }
 
-  Future<void> addTask(TaskModel task) async {
-    await _client.from(tableName).insert(task.toJson());
+  Future<TaskModel> addTask(TaskModel task) async {
+    final inserted =
+        await _client.from(tableName).insert(task.toJson()).select().single();
+
+    return TaskModel.fromJson(inserted);
   }
 
   Future<void> updateTask(String id, Map<String, dynamic> data) async {
