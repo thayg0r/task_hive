@@ -1,4 +1,4 @@
-import 'dart:math' as Math;
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class ClockIcon extends StatelessWidget {
@@ -43,18 +43,18 @@ class _ClockPainter extends CustomPainter {
     canvas.drawCircle(center, radius, paintCircle);
 
     final hourAngle =
-        ((time.hour % 12) + time.minute / 60) * 30 * (Math.pi / 180);
-    final minuteAngle = time.minute * 6 * (Math.pi / 180);
+        ((time.hour % 12) + time.minute / 60) * 30 * (math.pi / 180);
+    final minuteAngle = time.minute * 6 * (math.pi / 180);
 
     final hourHand = Offset(
-      center.dx + radius * 0.5 * Math.cos(hourAngle - Math.pi / 2),
-      center.dy + radius * 0.5 * Math.sin(hourAngle - Math.pi / 2),
+      center.dx + radius * 0.5 * math.cos(hourAngle - math.pi / 2),
+      center.dy + radius * 0.5 * math.sin(hourAngle - math.pi / 2),
     );
     canvas.drawLine(center, hourHand, paintHour);
 
     final minuteHand = Offset(
-      center.dx + radius * 0.75 * Math.cos(minuteAngle - Math.pi / 2),
-      center.dy + radius * 0.75 * Math.sin(minuteAngle - Math.pi / 2),
+      center.dx + radius * 0.75 * math.cos(minuteAngle - math.pi / 2),
+      center.dy + radius * 0.75 * math.sin(minuteAngle - math.pi / 2),
     );
     canvas.drawLine(center, minuteHand, paintMinute);
   }

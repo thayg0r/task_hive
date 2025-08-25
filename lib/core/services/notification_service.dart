@@ -22,12 +22,28 @@ class NotificationService {
 
     if (scheduledDate.isBefore(DateTime.now())) return;
 
+    final baseId = task.id.hashCode & 0x7fffffff;
+
+    final preReminderDate = scheduledDate.subtract(const Duration(minutes: 5));
+    if (preReminderDate.isAfter(DateTime.now())) {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: baseId,
+          channelKey: 'taskhive_channel',
+          title: 'Lembrete ⏰',
+          body: 'Sua tarefa ${task.title} começa em 5 minutos!',
+          notificationLayout: NotificationLayout.Default,
+        ),
+        schedule: NotificationCalendar.fromDate(date: preReminderDate),
+      );
+    }
+
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
-        id: task.id.hashCode & 0x7fffffff,
+        id: baseId + 1,
         channelKey: 'taskhive_channel',
         title: 'Lembrete ⏰',
-        body: 'Sua tarefa começa agora!',
+        body: 'Não esqueça de sua tarefa ${task.title}!',
         notificationLayout: NotificationLayout.Default,
       ),
       schedule: NotificationCalendar.fromDate(date: scheduledDate),
@@ -35,6 +51,8 @@ class NotificationService {
   }
 
   Future<void> cancelTaskNotification(String taskId) async {
-    await AwesomeNotifications().cancel(taskId.hashCode & 0x7fffffff);
+    final baseId = taskId.hashCode & 0x7fffffff;
+    await AwesomeNotifications().cancel(baseId);
+    await AwesomeNotifications().cancel(baseId + 1);
   }
 }
