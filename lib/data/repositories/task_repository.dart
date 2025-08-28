@@ -1,28 +1,74 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/services/supabase_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:task_hive/core/constants/app_keys.dart';
 import '../models/task_model.dart';
 
 class TaskRepository {
-  final SupabaseClient _client = SupabaseService.client;
-  final String tableName = 'tasks';
+  final String baseUrl = "${AppKeys.supabaseUrl}/rest/v1/tasks";
+  final Map<String, String> headers = {
+    "apikey": AppKeys.supabaseAnonKey,
+    "Authorization": "Bearer ${AppKeys.supabaseAnonKey}",
+    "Content-Type": "application/json",
+  };
 
   Future<List<TaskModel>> getTasks() async {
-    final response = await _client.from(tableName).select();
-    return response.map((json) => TaskModel.fromJson(json)).toList();
+    final res = await http.get(
+      Uri.parse("$baseUrl?select=*"),
+      headers: headers,
+    );                                                                                                                     
+
+    if (res.statusCode != 200) {
+      throw Exception("Erro ao buscar tarefas: ${res.body}");
+    }
+
+    final List data = jsonDecode(res.body);
+    return data.map((json) => TaskModel.fromJson(json)).toList();
   }
 
   Future<TaskModel> addTask(TaskModel task) async {
-    final inserted =
-        await _client.from(tableName).insert(task.toJson()).select().single();
+    final res = await http.post(
+      Uri.parse(baseUrl),
+      headers: {
+        ...headers,
+        "Prefer": "return=representation",
+      },
+      body: jsonEncode(task.toJson()),
+    );
 
-    return TaskModel.fromJson(inserted);
+    if (res.statusCode != 201) {
+      throw Exception("Erro ao criar tarefa: ${res.body}");
+    }
+
+    final List data = jsonDecode(res.body);
+    return TaskModel.fromJson(data.first);
   }
 
-  Future<void> updateTask(String id, Map<String, dynamic> data) async {
-    await _client.from(tableName).update(data).eq('id', id);
+  Future<TaskModel> updateTask(String id, Map<String, dynamic> data) async {
+    final res = await http.patch(
+      Uri.parse("$baseUrl?id=eq.$id"),
+      headers: {
+        ...headers,
+        "Prefer": "return=representation",
+      },
+      body: jsonEncode(data),
+    );
+
+    if (res.statusCode != 200) {
+      throw Exception("Erro ao atualizar tarefa: ${res.body}");
+    }
+
+    final List<dynamic> responseData = jsonDecode(res.body);
+    return TaskModel.fromJson(responseData.first);
   }
 
   Future<void> deleteTask(String id) async {
-    await _client.from(tableName).delete().eq('id', id);
+    final res = await http.delete(
+      Uri.parse("$baseUrl?id=eq.$id"),
+      headers: headers,
+    );
+
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception("Erro ao deletar tarefa: ${res.body}");
+    }
   }
 }
