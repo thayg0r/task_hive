@@ -40,10 +40,13 @@ lib/
 
 ## 📸 Screenshots
 
-<p align="left">
+<p align="center">
   <img src="assets/images/home_taskhive.jpg" alt="Tela inicial sem tarefas" width="250"/>
   <img src="assets/images/home_task.jpg" alt="Tela inicial com tarefas" width="250"/>
-   <img src="assets/images/form_taskhive.jpg" alt="Formulário de tarefa" width="250"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/form_taskhive.jpg" alt="Formulário de tarefa" width="250"/>
   <img src="assets/images/calendar_taskhive.jpg" alt="Calendário" width="250"/>
 </p>
 
