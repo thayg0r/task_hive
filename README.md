@@ -36,7 +36,21 @@ lib/
 ➡️ Esse padrão segue o **MVVM (Model–View–ViewModel)**, inspirado em boas práticas de **Clean Architecture**, garantindo:  
 - Separação clara de responsabilidades;  
 - Facilidade de manutenção;  
-- Evolução e expansão sem impacto direto na interface.  
+- Evolução e expansão sem impacto direto na interface.
+
+## 📸 Screenshots
+
+![Tela inicial](assets/images/home_taskhive.jpg)  
+*Tela inicial do aplicativo com lista sem tarefas.*
+
+![Tela inicial](assets/images/home_task.jpg)  
+*Tela inicial do aplicativo com lista de tarefas.*
+
+![Formulário de tarefa](assets/images/form_taskhive.jpg)  
+*Formulário para criação/edição de tarefas.*
+
+![Calendário](assets/images/calendar_taskhive.jpg)  
+*Calendário do aplicativo.*
 
 ---
 
