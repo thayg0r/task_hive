@@ -27,11 +27,11 @@ A proposta foi criar uma solução simples, mas escalável, explorando integraç
 O código foi estruturado em camadas:
 
 lib/
-┣ core/ # Serviços e constantes globais
-┣ data/ # Models e Repositórios (acesso a dados)
-┣ viewmodels/ # Lógica de negócio (Provider)
-┣ views/ # UI e widgets (camada de apresentação)
-┗ main.dart # Inicialização do app
+├── core/ # Serviços e constantes globais
+├── data/ # Models e Repositórios (acesso a dados)
+├── viewmodels/ # Lógica de negócio (Provider)
+├── views/ # UI e widgets (camada de apresentação)
+└── main.dart # Inicialização do app
 
 ➡️ Esse padrão segue o **MVVM (Model–View–ViewModel)**, inspirado em boas práticas de **Clean Architecture**, garantindo:  
 - Separação clara de responsabilidades;  
