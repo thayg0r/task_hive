@@ -40,17 +40,29 @@ lib/
 
 ## 📸 Screenshots
 
-![Tela inicial](assets/images/home_taskhive.jpg)  
-*Tela inicial do aplicativo com lista sem tarefas.*
+<p align="center">
+  <img src="assets/images/home_taskhive.jpg" alt="Tela inicial sem tarefas" width="300"/>
+  <br/>
+  <em>Tela inicial do aplicativo com lista sem tarefas.</em>
+</p>
 
-![Tela inicial](assets/images/home_task.jpg)  
-*Tela inicial do aplicativo com lista de tarefas.*
+<p align="center">
+  <img src="assets/images/home_task.jpg" alt="Tela inicial com tarefas" width="300"/>
+  <br/>
+  <em>Tela inicial do aplicativo com lista de tarefas.</em>
+</p>
 
-![Formulário de tarefa](assets/images/form_taskhive.jpg)  
-*Formulário para criação/edição de tarefas.*
+<p align="center">
+  <img src="assets/images/form_taskhive.jpg" alt="Formulário de tarefa" width="300"/>
+  <br/>
+  <em>Formulário para criação/edição de tarefas.</em>
+</p>
 
-![Calendário](assets/images/calendar_taskhive.jpg)  
-*Calendário do aplicativo.*
+<p align="center">
+  <img src="assets/images/calendar_taskhive.jpg" alt="Calendário" width="300"/>
+  <br/>
+  <em>Calendário do aplicativo.</em>
+</p>
 
 ---
 
